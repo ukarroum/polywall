@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+cynic = "3.10.0"
 reqwest = { version = "0.12.11" , features = ["blocking"]}
