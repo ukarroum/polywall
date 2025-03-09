@@ -4,13 +4,16 @@ use regex::Regex;
 use std::fs::File;
 use std::io::Write;
 use std::process::Command;
+use std::env;
 
 const API_ENDPOINT: &str = "https://apicollections.parismusees.paris.fr/graphql";
 
 fn main() {
+    let API_KEY: String = env::var("PARIS_MUSEE_API_KEY").unwrap();
+
     let mut headers = header::HeaderMap::new();
     headers.insert("Content-Type", "application/json".parse().unwrap());
-    headers.insert("auth-token", "API_KEY".parse().unwrap());
+    headers.insert("auth-token", API_KEY.parse().unwrap());
 
     let client = reqwest::blocking::Client::builder().build().unwrap();
 
