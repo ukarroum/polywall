@@ -1,30 +1,27 @@
 extern crate reqwest;
 use reqwest::header;
 use regex::Regex;
-use std::fs::File;
-use std::io::Write;
 use std::process::Command;
 use std::env;
+use std::string::String;
 
 const API_ENDPOINT: &str = "https://apicollections.parismusees.paris.fr/graphql";
 
 fn main() {
-    let API_KEY: String = env::var("PARIS_MUSEE_API_KEY").unwrap();
+    let api_key: String = env::var("PARIS_MUSEE_API_KEY").unwrap();
 
     let mut headers = header::HeaderMap::new();
     headers.insert("Content-Type", "application/json".parse().unwrap());
-    headers.insert("auth-token", API_KEY.parse().unwrap());
+    headers.insert("auth-token", api_key.parse().unwrap());
 
     let client = reqwest::blocking::Client::builder().build().unwrap();
 
     // 4284 => Paiting
-    let res = client.post(API_ENDPOINT).headers(headers.clone()).body(r#"{"query": "{ nodeQuery( filter: {conditions: [{field: \"field_oeuvre_types_objet.entity.field_lref_adlib\", value: \"4284\"}, {field: \"field_visuels.entity.field_image_libre\", value: \"1\"}]}, offset: 4, limit: 1) { entities { ... on NodeOeuvre { title fieldVisuels { entity {publicUrl}} }}}}"}"#)
+    let res = client.post(API_ENDPOINT).headers(headers.clone()).body(r#"{"query": "{ nodeQuery( filter: {conditions: [{field: \"field_oeuvre_types_objet.entity.field_lref_adlib\", value: \"4284\"}, {field: \"field_visuels.entity.field_image_libre\", value: \"1\"}]}, offset: 17, limit: 1) { entities { ... on NodeOeuvre { title fieldVisuels { entity {publicUrl}} }}}}"}"#)
         .send().unwrap()
         .text().unwrap();
 
-    println!("{}", res);
-
-    let re = Regex::new("publicUrl\":\"(?<url>.*)\"").unwrap();
+    let re = Regex::new("publicUrl\":\"(?<url>.*?)\"").unwrap();
 
     let Some(json) = re.captures(&res) else {
         println!("No match");
@@ -32,15 +29,8 @@ fn main() {
     };
 
     let url = json["url"].replace("\\", "");
-    println!("Url: {}", &url);
 
-    let res = client.get(&url).send().unwrap().bytes().unwrap();
-
-    let mut dest = File::create("test.jpg").unwrap();
-
-    dest.write_all(&res);
-
-    Command::new("gsettings").args(["org.gnome.desktop.background", "picture-uri", "test.jpg"]);
-    Command::new("gsettings").args(["org.gnome.desktop.background", "picture-options", "scaled"]);
-    Command::new("gsettings").args(["org.gnome.desktop.background", "primary-color", "000000"]);
+    Command::new("gsettings").args(["set", "org.gnome.desktop.background", "picture-uri", &url]).spawn().unwrap();
+    Command::new("gsettings").args(["set", "org.gnome.desktop.background", "picture-options", "scaled"]).spawn().unwrap();
+    Command::new("gsettings").args(["set", "org.gnome.desktop.background", "primary-color", "000000"]).spawn().unwrap();
 }
