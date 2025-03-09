@@ -1,6 +1,8 @@
 extern crate reqwest;
 use reqwest::header;
 use regex::Regex;
+use std::fs::File;
+use std::io::Write;
 
 const API_ENDPOINT: &str = "https://apicollections.parismusees.paris.fr/graphql";
 
@@ -27,4 +29,10 @@ fn main() {
 
     let url = json["url"].replace("\\", "");
     println!("Url: {}", &url);
+
+    let res = client.get(&url).send().unwrap().bytes().unwrap();
+
+    let mut dest = File::create("test.jpg").unwrap();
+
+    dest.write_all(&res);
 }
