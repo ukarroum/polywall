@@ -1,5 +1,6 @@
 extern crate reqwest;
 use reqwest::header;
+use regex::Regex;
 
 const API_ENDPOINT: &str = "https://apicollections.parismusees.paris.fr/graphql";
 
@@ -16,4 +17,14 @@ fn main() {
         .text().unwrap();
 
     println!("{}", res);
+
+    let re = Regex::new("publicUrl\":\"(?<url>.*)\"").unwrap();
+
+    let Some(json) = re.captures(&res) else {
+        println!("No match");
+        return;
+    };
+
+    let url = json["url"].replace("\\", "");
+    println!("Url: {}", &url);
 }

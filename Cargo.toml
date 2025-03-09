@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 cynic = "3.10.0"
+regex = "1.11.1"
 reqwest = { version = "0.12.11" , features = ["blocking"]}
