@@ -3,6 +3,7 @@ use reqwest::header;
 use regex::Regex;
 use std::fs::File;
 use std::io::Write;
+use std::process::Command;
 
 const API_ENDPOINT: &str = "https://apicollections.parismusees.paris.fr/graphql";
 
@@ -14,7 +15,7 @@ fn main() {
     let client = reqwest::blocking::Client::builder().build().unwrap();
 
     // 4284 => Paiting
-    let res = client.post(API_ENDPOINT).headers(headers.clone()).body(r#"{"query": "{ nodeQuery( filter: {conditions: [{field: \"field_oeuvre_types_objet.entity.field_lref_adlib\", value: \"4284\"}, {field: \"field_visuels.entity.field_image_libre\", value: \"1\"}]}, offset: 3, limit: 1) { entities { ... on NodeOeuvre { title fieldVisuels { entity {publicUrl}} }}}}"}"#)
+    let res = client.post(API_ENDPOINT).headers(headers.clone()).body(r#"{"query": "{ nodeQuery( filter: {conditions: [{field: \"field_oeuvre_types_objet.entity.field_lref_adlib\", value: \"4284\"}, {field: \"field_visuels.entity.field_image_libre\", value: \"1\"}]}, offset: 4, limit: 1) { entities { ... on NodeOeuvre { title fieldVisuels { entity {publicUrl}} }}}}"}"#)
         .send().unwrap()
         .text().unwrap();
 
@@ -35,4 +36,8 @@ fn main() {
     let mut dest = File::create("test.jpg").unwrap();
 
     dest.write_all(&res);
+
+    Command::new("gsettings").args(["org.gnome.desktop.background", "picture-uri", "test.jpg"]);
+    Command::new("gsettings").args(["org.gnome.desktop.background", "picture-options", "scaled"]);
+    Command::new("gsettings").args(["org.gnome.desktop.background", "primary-color", "000000"]);
 }
